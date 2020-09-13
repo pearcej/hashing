@@ -1,0 +1,539 @@
+65 hashing
+
+in previous sections we were able to make improvements on our search algorithms by taking advantage of information about where items are stored in the collection with respect to one another for example by knowing that a list was ordered we could search in logarithmic time using a binary search in this section we will attempt to go one step further by building a data structure that can be searched in o1 by using hashing
+
+in order to do this we will need to know even more about where the items might be when we go to look for them in the collection if every item is where it should be then the search can use a single comparison to discover the presence of an item we will see however that this is typically not the case
+
+a hash table is a collection of items which are stored in such a way as to make it easy to find them later each position of the hash table often called a slot can hold an item and is named by an integer value starting at 0 for example we will have a slot named 0 a slot named 1 a slot named 2 and so on initially the hash table contains no items so every slot is empty we can implement a hash table by using a list with each value intialized to an empty string figure 4 shows a hash table of size m11 in other words there are m slots in the table named 0 through 10
+
+imageshashtablepng
+figure 4 hash table with 11 empty slots
+
+the mapping between an item and the slot where that item belongs in the hash table is called the hash function the hash function will take any item in the collection and return an integer in the range of slot names between 0 and m1 assume that we have the set of integer items 54 26 93 17 77 and 31 our first hash function sometimes referred to as the remainder method simply takes an item and divides it by the table size returning the remainder as its hash value hitemitem11 table 4 gives all of the hash values for our example items note that this remainder method modulo arithmetic will typically be present in some form in all hash functions since the result must be in the range of slot names
+
+table 4 simple hash function using remainders
+item
+
+hash value
+
+54
+
+10
+
+26
+
+4
+
+93
+
+5
+
+17
+
+6
+
+77
+
+0
+
+31
+
+9
+
+once the hash values have been computed we can insert each item into the hash table at the designated position as shown in figure 5 note that 6 of the 11 slots are now occupied this is referred to as the load factor and is commonly denoted by λnumberofitemstablesize for this example λ611
+
+imageshashtable2png
+figure 5 hash table with six items
+
+now when we want to search for an item we simply use the hash function to compute the slot name for the item and then check the hash table to see if it is present this searching operation is o1 since a constant amount of time is required to compute the hash value and then index the hash table at that location if everything is where it should be we have found a constant time search algorithm
+
+you can probably already see that this technique is going to work only if each item maps to a unique location in the hash table for example if the item 44 had been the next item in our collection it would have a hash value of 0 44110 since 77 also had a hash value of 0 we would have a problem according to the hash function two or more items would need to be in the same slot this is referred to as a collision it may also be called a clash clearly collisions create a problem for the hashing technique we will discuss them in detail later
+
+651 hash functions
+given a collection of items a hash function that maps each item into a unique slot is referred to as a perfect hash function if we know the items and the collection will never change then it is possible to construct a perfect hash function refer to the exercises for more about perfect hash functions unfortunately given an arbitrary collection of items there is no systematic way to construct a perfect hash function luckily we do not need the hash function to be perfect to still gain performance efficiency
+
+one way to always have a perfect hash function is to increase the size of the hash table so that each possible value in the item range can be accommodated this guarantees that each item will have a unique slot although this is practical for small numbers of items it is not feasible when the number of possible items is large for example if the items were ninedigit social security numbers this method would require almost one billion slots if we only want to store data for a class of 25 students we will be wasting an enormous amount of memory
+
+our goal is to create a hash function that minimizes the number of collisions is easy to compute and evenly distributes the items in the hash table there are a number of common ways to extend the simple remainder method we will consider a few of them here
+
+the folding method for constructing hash functions begins by dividing the item into equalsize pieces the last piece may not be of equal size these pieces are then added together to give the resulting hash value for example if our item was the phone number 4365554601 we would take the digits and divide them into groups of 2 4365554601 after the addition 4365554601 we get 210 if we assume our hash table has 11 slots then we need to perform the extra step of dividing by 11 and keeping the remainder in this case 210  11 is 1 so the phone number 4365554601 hashes to slot 1 some folding methods go one step further and reverse every other piece before the addition for the above example we get 4356556401219 which gives 219  1110
+
+another numerical technique for constructing a hash function is called the midsquare method we first square the item and then extract some portion of the resulting digits for example if the item were 44 we would first compute 4421936 by extracting the middle two digits 93 and performing the remainder step we get 5 93  11 table 5 shows items under both the remainder method and the midsquare method you should verify that you understand how these values were computed
+
+table 5 comparison of remainder and midsquare methods
+item
+
+remainder
+
+midsquare
+
+54
+
+10
+
+3
+
+26
+
+4
+
+7
+
+93
+
+5
+
+9
+
+17
+
+6
+
+8
+
+77
+
+0
+
+4
+
+31
+
+9
+
+6
+
+we can also create hash functions for characterbased items such as strings the word cat can be thought of as a sequence of int values the corresponding int value can be found by declaring an int and using it to store a char you can also cast the value as an int using int
+
+string h  hello
+char c  h0
+int i  c
+
+couthendl
+coutcendl
+coutiendl
+
+hello
+h
+104
+we can then take these three ordinal values add them up and use the remainder method to get a hash value see figure 6 listing 1 shows a function called hash that takes a string and a table size and returns the hash value in the range from 0 to tablesize1
+
+imagesstringhashpng
+figure 6 hashing a string using ordinal values
+
+listing 1
+
+1
+include iostream
+2
+include string
+3
+using namespace std
+4
+
+5
+ uses ordinal values of strings  and using positional values to weight them
+6
+to generate a hash value
+7
+int hashfuncstring a int tablesize 
+8
+    int sum0
+9
+    for unsigned int pos0 posalength pos 
+10
+        sum  intapos  getting ordinal values and using positional values to weight them
+11
+        adding them up and using the remainder method to get a hash value
+12
+    
+13
+
+14
+    return sumtablesize
+15
+
+16
+
+17
+int main 
+18
+    couthashfuncfirst  10endl
+19
+    couthashfuncsecond 10endl
+20
+    couthashfuncthird  10endl
+21
+
+22
+    return 0
+23
+
+24
+
+a simple c string hash function simplehash
+
+it is interesting to note that when using this hash function anagrams will always be given the same hash value to remedy this we could use the position of the character as a weight figure 7 shows one possible way to use the positional value as a weighting factor the modification to the hash function is left as an exercise
+
+imagesstringhash2png
+figure 7 hashing a string using ordinal values with weighting
+
+you may be able to think of a number of additional ways to compute hash values for items in a collection the important thing to remember is that the hash function has to be efficient so that it does not become the dominant part of the storage and search process if the hash function is too complex then it becomes more work to compute the slot name than it would be to simply do a basic sequential or binary search as described earlier this would quickly defeat the purpose of hashing
+
+652 collision resolution
+we now return to the problem of collisions when two items hash to the same slot we must have a systematic method for placing the second item in the hash table this process is called collision resolution as we stated earlier if the hash function is perfect collisions will never occur however since this is often not possible collision resolution becomes a very important part of hashing
+
+one method for resolving collisions looks into the hash table and tries to find another open slot to hold the item that caused the collision a simple way to do this is to start at the original hash value position and then move in a sequential manner through the slots until we encounter the first slot that is empty note that we may need to go back to the first slot circularly to cover the entire hash table this collision resolution process is referred to as open addressing in that it tries to find the next open slot or address in the hash table by systematically visiting each slot one at a time we are performing an open addressing technique called linear probing
+
+figure 8 shows an extended set of integer items under the simple remainder method hash function 542693177731445520 table 4 above shows the hash values for the original items figure 5 shows the original contents when we attempt to place 44 into slot 0 a collision occurs under linear probing we look sequentially slot by slot until we find an open position in this case we find slot 1
+
+again 55 should go in slot 0 but must be placed in slot 2 since it is the next open position the final value of 20 hashes to slot 9 since slot 9 is full we begin to do linear probing we visit slots 10 0 1 and 2 and finally find an empty slot at position 3
+
+imageslinearprobing1png
+figure 8 collision resolution with linear probing
+
+once we have built a hash table using open addressing and linear probing it is essential that we utilize the same methods to search for items assume we want to look up the item 93 when we compute the hash value we get 5 looking in slot 5 reveals 93 and we can return true what if we are looking for 20 now the hash value is 9 and slot 9 is currently holding 31 we cannot simply return false since we know that there could have been collisions we are now forced to do a sequential search starting at position 10 looking until either we find the item 20 or we find an empty slot
+
+a disadvantage to linear probing is the tendency for clustering items become clustered in the table this means that if many collisions occur at the same hash value a number of surrounding slots will be filled by the linear probing resolution this will have an impact on other items that are being inserted as we saw when we tried to add the item 20 above a cluster of values hashing to 0 had to be skipped to finally find an open position this cluster is shown in figure 9
+
+imagesclusteringpng
+figure 9 a cluster of items for slot 0
+
+one way to deal with clustering is to extend the linear probing technique so that instead of looking sequentially for the next open slot we skip slots thereby more evenly distributing the items that have caused collisions this will potentially reduce the clustering that occurs figure 10 shows the items when collision resolution is done with a plus 3 probe this means that once a collision occurs we will look at every third slot until we find one that is empty
+
+imageslinearprobing2png
+figure 10 collision resolution using plus 3
+
+the general name for this process of looking for another slot after a collision is rehashing with simple linear probing the rehash function is newhashvaluerehasholdhashvalue where rehashpospos1sizeoftable the plus 3 rehash can be defined as rehashpospos3sizeoftable in general rehashposposskipsizeoftable it is important to note that the size of the skip must be such that all the slots in the table will eventually be visited otherwise part of the table will be unused to ensure this it is often suggested that the table size be a prime number this is the reason we have been using 11 in our examples
+
+a variation of the linear probing idea is called quadratic probing instead of using a constant skip value we use a rehash function that increments the hash value by 1 3 5 7 9 and so on this means that if the first hash value is h the successive values are h1 h4 h9 h16 and so on in other words quadratic probing uses a skip consisting of successive perfect squares figure 11 shows our example values after they are placed using this technique
+
+imagesquadraticpng
+figure 11 collision resolution with quadratic probing
+
+an alternative method for handling the collision problem is to allow each slot to hold a reference to a collection or chain of items chaining allows many items to exist at the same location in the hash table when collisions happen the item is still placed in the proper slot of the hash table as more and more items hash to the same location the difficulty of searching for the item in the collection increases figure 12 shows the items as they are added to a hash table that uses chaining to resolve collisions
+
+imageschainingpng
+figure 12 collision resolution with chaining
+
+when we want to search for an item we use the hash function to generate the slot where it should reside since each slot holds a collection we use a searching technique to decide whether the item is present the advantage is that on the average there are likely to be many fewer items in each slot so the search is perhaps more efficient we will look at the analysis for hashing at the end of this section
+
+self check
+
+q1 in a hash table of size 13 which index positions would the following two keys map to 27 130
+
+a 1 10
+b 13 0
+c 1 0
+d 2 3
+
+multiple choice hash1
+
+q2 suppose you are given the following set of keys to insert into a hash table that holds exactly 11 values 113  117  97  100  114  108  121  105  99 which of the following best demonstrates the contents of the hash table after all the keys have been inserted using linear probing
+
+a 100   113 114 105 121 117 97 108 99
+b 99 100 121 113 114   117 105 97 108
+c 100 113 117 97 14 108 121 105 99  
+d 117 114 108 121 105 99   97 100 113
+
+multiple choice hash2
+
+653 implementing the map abstract data type
+one of the most useful c data structures is the map recall that a map is an associative data type where you can store keydata pairs the key is used to look up the associated data value
+
+the map abstract data type is defined as follows the structure is an unordered collection of associations between a key and a data value the keys in a map are all unique so that there is a onetoone relationship between a key and a value the operations are given below
+
+table 1 map operations
+map operation
+
+description
+
+mmap
+
+create a new empty map it returns an empty map collection
+
+mputkeyval
+
+add a new keyvalue pair to the map if the key is already in the map then replace the old value with the new value
+
+mgetkey
+
+given a key return the value stored in the map or none otherwise
+
+del mkey
+
+delete the keyvalue pair from the map
+
+lenm
+
+return the number of keyvalue pairs stored in the map
+
+in
+
+return true for a statement of the form key in map if the given is in the map and false otherwise
+
+one of the great benefits of a map is the fact that given a key we can look up the associated data value very quickly in order to provide this fast look up capability we need an implementation that supports an efficient search we could use a list with sequential or binary search but it would be even better to use a hash table as described above since looking up an item in a hash table can approach o1 performance
+
+in listing 2 we use two lists to create a hashtable class that implements the map abstract data type one list called slots will hold the key items and a parallel list called data will hold the data values when we look up a key the corresponding position in the data list will hold the associated data value we will treat the key list as a hash table using the ideas presented earlier note that the initial size for the hash table has been chosen to be 11 although this is arbitrary it is important that the size be a prime number so that the collision resolution algorithm can be as efficient as possible
+
+listing 2
+
+class hashtable
+    public
+    static const int size11
+    int slotssize
+    string datasize
+in listing 3 hashfunction implements the simple remainder method the collision resolution technique is linear probing with a plus 1 rehash function the put function assumes that there will eventually be an empty slot unless the key is already present in the selfslots it computes the original hash value and if that slot is not empty iterates the rehash function until an empty slot occurs if a nonempty slot already contains the key the old data value is replaced with the new data value dealing with the situation where there are no empty slots left is an exercise
+
+listing 3
+
+def putselfkeydata
+    hashvalue  selfhashfunctionkeylenselfslots
+
+    if selfslotshashvalue  none
+        selfslotshashvalue  key
+        selfdatahashvalue  data
+    else
+        if selfslotshashvalue  key
+            selfdatahashvalue  data  replace
+        else
+            nextslot  selfrehashhashvaluelenselfslots
+            while selfslotsnextslot  none and selfslotsnextslot  key
+                nextslot  selfrehashnextslotlenselfslots
+
+        if selfslotsnextslot  none
+            selfslotsnextslot  key
+            selfdatanextslot  data
+        else
+            selfdatanextslot  data replace
+
+def hashfunctionselfkeysize
+    return keysize
+
+def rehashselfoldhashsize
+    return oldhash1size
+int hashfunctionint key 
+    return keysize
+
+
+int rehashint oldhash 
+    return oldhash1size
+
+
+void putint key string val
+    int hashvalue  hashfunctionkey
+    int count  0
+
+    if datahashvalue 
+        slotshashvalue  key
+        datahashvalue  val
+     else 
+        if slotshashvalue  key 
+            datahashvalue  val
+         else 
+            int nextslot  rehashhashvalue
+
+            while datanextslot  slotsnextslot  key 
+                nextslot  rehashnextslot
+
+                count
+                if countsize 
+                    couttable fullendl
+                    return
+                
+            
+            if datanextslot 
+                slotsnextslotkey
+                datanextslotval
+             else 
+                datanextslot  val
+            
+        
+    
+
+likewise the get function see listing 4 begins by computing the initial hash value if the value is not in the initial slot rehash is used to locate the next possible position notice that line 15 guarantees that the search will terminate by checking to make sure that we have not returned to the initial slot if that happens we have exhausted all possible slots and the item must not be present
+
+the final methods of the hashtable class provide additional map functionality we overload the getitem and setitem methods to allow access using this means that once a hashtable has been created the familiar index operator will be available we leave the remaining methods as exercises
+
+listing 4
+
+def getselfkey
+    startslot  selfhashfunctionkeylenselfslots
+
+    data  none
+    stop  false
+    found  false
+    position  startslot
+    while selfslotsposition  none and not found and not stop
+        if selfslotsposition  key
+            found  true
+            data  selfdataposition
+        else
+            positionselfrehashpositionlenselfslots
+            if position  startslot
+                stop  true
+    return data
+
+def getitemselfkey
+    return selfgetkey
+
+def setitemselfkeydata
+    selfputkeydata
+string getint key 
+    int startslot  hashfunctionkey
+
+    string val
+    bool stopfalse
+    bool foundfalse
+    int position  startslot
+    whiledataposition  found  stop 
+        if slotspositionkey 
+            found  true
+            val  dataposition
+         else 
+            positionrehashposition
+            if positionstartslot 
+                stoptrue
+            
+        
+
+    
+    return val
+
+the following session shows the hashtable class in action first we will create a hash table and store some items with integer keys and string data values
+
+int main 
+    hashtable h
+
+    hput54 cat
+    hput26 dog
+    hput93 lion
+    hput17 tiger
+    hput77 bird
+    hput31 cow
+    hput44 goat
+    hput55 pig
+    hput20 chicken
+    couthendl
+
+    return 0
+
+
+ output
+  77 bird
+  44 goat
+  55 pig
+  20 chicken
+  26 dog
+  93 lion
+  17 tiger
+  0
+  0
+  31 cow
+  54 cat
+next we will access and modify some items in the hash table note that the value for the key 20 is being replaced
+
+
+hput20chicken
+hput17tiger
+hput20duck
+couthendl
+
+
+ output
+77 bird
+44 goat
+55 pig
+20 duck
+26 dog
+93 lion
+17 tiger
+65535
+0
+31 cow
+54 cat
+the complete hash table example can be found in activecode 1
+
+c
+python
+1
+include iostream
+2
+include string
+3
+using namespace std
+4
+
+5
+class hashtable
+6
+    public
+7
+    static const int size11  initial size of hash table is prime to help with collision resolution
+8
+    int slotssize  list to hold key items
+9
+    string datasize  list to hold data values
+10
+
+11
+    int hashfunctionint key   implements remainder method
+12
+        return keysize
+13
+    
+14
+
+15
+       computes original hashvalue and if slot is
+16
+       not empty iterates until empty slot is found
+17
+    int rehashint oldhash 
+18
+        return oldhash1size
+19
+    
+20
+
+21
+     function that assumes there will eventually be
+22
+     an empty slot unless the key is alread present in the slot
+23
+    void putint key string val
+24
+        int hashvalue  hashfunctionkey
+title for the c window completehashcpp
+
+654 analysis of hashing
+we stated earlier that in the best case hashing would provide a o1 constant time search technique however due to collisions the number of comparisons is typically not so simple even though a complete analysis of hashing is beyond the scope of this text we can state some wellknown results that approximate the number of comparisons necessary to search for an item
+
+the most important piece of information we need to analyze the use of a hash table is the load factor λ conceptually if λ is small then there is a lower chance of collisions meaning that items are more likely to be in the slots where they belong if λ is large meaning that the table is filling up then there are more and more collisions this means that collision resolution is more difficult requiring more comparisons to find an empty slot with chaining increased collisions means an increased number of items on each chain
+
+as before we will have a result for both a successful and an unsuccessful search for a successful search using open addressing with linear probing the average number of comparisons is approximately 12111−λ and an unsuccessful search gives 12111−λ2 if we are using chaining the average number of comparisons is 1λ2 for the successful case and simply λ comparisons if the search is unsuccessful
+
+66 self check
+q3 match the method of finding data to its corresponding big o
+no1
+on
+olog n
+dragndrop bigosh
+
+
+q4 drag the search method to the type of data that it is more efficient for compared to the other search method
+unordered data
+ordered data
+dragndrop searchbests
+
+
+q5 what creates hash collisions
+
+a when pairs of different hash values are mapped to the same key
+b when pairs of different hash values do not share the same key
+c when pairs of different keys are mapped to the same hash value
+d when pairs of different keys do not share the same hash value
+
+multiple choice hashcollisions
+
+you have attempted 9 of 9 activities on this page
